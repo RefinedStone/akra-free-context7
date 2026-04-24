@@ -2,13 +2,22 @@
 
 [![CI](https://github.com/RefinedStone/akra-free-context7/actions/workflows/ci.yml/badge.svg)](https://github.com/RefinedStone/akra-free-context7/actions/workflows/ci.yml)
 
-Codex에서 Context7 MCP가 API 키 문제로 막혀도 최신 기술 문서 검색을 계속 쓰기 위한 무료 대체 skill입니다. Context7의 공개 웹 API를 직접 호출해 기술 키워드를 Context7 project로 해석하고, 선택한 project에서 필요한 문서 snippet을 가져옵니다.
+Codex에서 Context7 MCP가 API 키, `npx`, Windows 경로 문제 등으로 막혔을 때 최신 기술 문서 검색을 계속 쓰기 위한 무료 fallback skill입니다. Context7의 공개 웹 API를 직접 호출해 기술 키워드를 Context7 project로 해석하고, 선택한 project에서 필요한 문서 snippet을 가져옵니다.
 
 ## Context7이란?
 
 Context7은 AI 코딩 도구가 오래된 학습 지식 대신 현재 라이브러리 문서를 참고하도록 도와주는 문서 검색 레이어입니다. `ratatui`, `springboot kotlin`, `webflux` 같은 키워드를 실제 문서 project로 연결하고, 질문에 맞는 코드 예시와 API 설명을 짧게 가져옵니다.
 
-이 repo는 공식 MCP 서버를 대체하려는 프로젝트가 아닙니다. MCP 설정이 깨졌거나 API 키 없이 빠르게 문서를 찾아야 할 때, Codex skill 형태로 Context7의 검색 흐름을 가볍게 재현합니다.
+공식 Context7 MCP가 정상 동작한다면 공식 MCP를 먼저 쓰는 것이 정석입니다. 이 repo는 공식 MCP 서버를 대체하려는 프로젝트가 아니라, MCP 설정이 깨졌거나 API 키 없이 빠르게 문서를 찾아야 할 때 Codex skill 형태로 Context7의 검색 흐름을 가볍게 재현하는 우회 경로입니다.
+
+## 언제 쓰나요?
+
+- Context7 MCP가 `Invalid API key`로 실패할 때
+- `npx -y @upstash/context7-mcp` 실행이 환경마다 불안정할 때
+- Windows에서 MCP 서버 실행이나 경로 문제로 막힐 때
+- Codex skill만으로 `resolve -> fetch docs` 흐름을 간단히 쓰고 싶을 때
+
+공식 MCP가 잘 붙는 환경에서는 이 skill을 필수로 설치할 필요가 없습니다. 이 도구는 “공식 경로가 막혔을 때도 작업을 멈추지 않기 위한 안전한 fallback”에 가깝습니다.
 
 ## 설치
 
