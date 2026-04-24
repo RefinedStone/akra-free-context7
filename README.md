@@ -22,6 +22,48 @@ irm https://raw.githubusercontent.com/RefinedStone/akra-free-context7/main/insta
 
 설치 후 Codex를 재시작해야 skill 목록이 다시 로드됩니다.
 
+## 수동 설치
+
+자동 설치가 실패하면 `context7-web` 폴더를 직접 `skills` 디렉터리에 넣으면 됩니다. 기본 위치는 Codex 기준 `~/.codex/skills/context7-web`입니다. `CODEX_HOME`을 따로 쓰고 있다면 `$CODEX_HOME/skills/context7-web`에 넣으세요.
+
+macOS, Linux, WSL:
+
+```bash
+tmp_dir="$(mktemp -d)"
+curl -fsSL https://github.com/RefinedStone/akra-free-context7/archive/refs/heads/main.tar.gz | tar -xz -C "$tmp_dir"
+mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+rm -rf "${CODEX_HOME:-$HOME/.codex}/skills/context7-web"
+cp -R "$tmp_dir"/akra-free-context7-main/context7-web "${CODEX_HOME:-$HOME/.codex}/skills/context7-web"
+chmod +x "${CODEX_HOME:-$HOME/.codex}/skills/context7-web/scripts/"*.sh
+rm -rf "$tmp_dir"
+```
+
+Windows PowerShell:
+
+```powershell
+$tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("akra-free-context7-" + [System.Guid]::NewGuid().ToString("N"))
+$zip = Join-Path $tmp "source.zip"
+$codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
+$skillsHome = Join-Path $codexHome "skills"
+New-Item -ItemType Directory -Force -Path $tmp, $skillsHome | Out-Null
+Invoke-WebRequest https://github.com/RefinedStone/akra-free-context7/archive/refs/heads/main.zip -OutFile $zip
+Expand-Archive $zip -DestinationPath $tmp -Force
+$dest = Join-Path $skillsHome "context7-web"
+Remove-Item $dest -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item (Join-Path $tmp "akra-free-context7-main/context7-web") $dest -Recurse
+Remove-Item $tmp -Recurse -Force
+```
+
+Git이 이미 설치되어 있다면 clone으로도 설치할 수 있습니다.
+
+```bash
+git clone https://github.com/RefinedStone/akra-free-context7.git
+mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+cp -R akra-free-context7/context7-web "${CODEX_HOME:-$HOME/.codex}/skills/context7-web"
+```
+
+수동 설치 후에도 Codex를 재시작해야 skill 목록이 갱신됩니다.
+
 ## 요구 사항
 
 - Python 3
