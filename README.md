@@ -2,9 +2,13 @@
 
 [![CI](https://github.com/RefinedStone/akra-free-context7/actions/workflows/ci.yml/badge.svg)](https://github.com/RefinedStone/akra-free-context7/actions/workflows/ci.yml)
 
-Context7 MCP가 API 키 문제로 막혔을 때 쓰는 Codex skill입니다. Context7의 공개 웹 API를 직접 호출해서 기술 문서를 검색하고, 적합한 Context7 project를 고른 뒤, 해당 문서 snippet을 가져옵니다.
+Codex에서 Context7 MCP가 API 키 문제로 막혀도 최신 기술 문서 검색을 계속 쓰기 위한 무료 대체 skill입니다. Context7의 공개 웹 API를 직접 호출해 기술 키워드를 Context7 project로 해석하고, 선택한 project에서 필요한 문서 snippet을 가져옵니다.
 
-README는 설치와 사용 예시를 첫 화면에서 바로 확인할 수 있게 구성했습니다. GitHub README 관례상 제목, 짧은 설명, 상태 배지, 설치, 사용 예시, 제한 사항을 앞쪽에 두는 방식이 가장 읽기 쉽습니다.
+## Context7이란?
+
+Context7은 AI 코딩 도구가 오래된 학습 지식 대신 현재 라이브러리 문서를 참고하도록 도와주는 문서 검색 레이어입니다. `ratatui`, `springboot kotlin`, `webflux` 같은 키워드를 실제 문서 project로 연결하고, 질문에 맞는 코드 예시와 API 설명을 짧게 가져옵니다.
+
+이 repo는 공식 MCP 서버를 대체하려는 프로젝트가 아닙니다. MCP 설정이 깨졌거나 API 키 없이 빠르게 문서를 찾아야 할 때, Codex skill 형태로 Context7의 검색 흐름을 가볍게 재현합니다.
 
 ## 설치
 
