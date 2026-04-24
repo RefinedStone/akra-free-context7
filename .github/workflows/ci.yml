@@ -64,7 +64,8 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          archive="$(mktemp --suffix=.tar.gz)"
+          tmp_base="${RUNNER_TEMP:-$(mktemp -d)}"
+          archive="$tmp_base/akra-free-context7.tar.gz"
           install_home="$(mktemp -d)"
           tar --exclude=.git -czf "$archive" -C .. "$(basename "$PWD")"
           CODEX_HOME="$install_home" CONTEXT7_WEB_SKILL_ARCHIVE_URL="file://$archive" ./install.sh
@@ -89,7 +90,8 @@ jobs:
         run: |
           python context7-web/scripts/context7_web.py resolve "rust rattauui" --limit 2
 
-      - name: Context7 fetch smoke
+      - name: Context7 fetch smoke on Unix
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           python context7-web/scripts/context7_web.py fetch /websites/rs_ratatui --topic layout --tokens 1000 >/tmp/context7-fetch.json
@@ -99,3 +101,11 @@ jobs:
               data = json.load(file)
           assert data.get('snippets'), 'Context7 fetch returned no snippets'
           PY
+
+      - name: Context7 fetch smoke on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $output = Join-Path $env:RUNNER_TEMP "context7-fetch.json"
+          python context7-web/scripts/context7_web.py fetch "/websites/rs_ratatui" --topic layout --tokens 1000 | Out-File -FilePath $output -Encoding utf8
+          python -c "import json, pathlib; data=json.loads(pathlib.Path(r'$output').read_text(encoding='utf-8-sig')); assert data.get('snippets'), 'Context7 fetch returned no snippets'"
