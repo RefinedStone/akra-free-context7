@@ -15,20 +15,20 @@ Use this skill when Context7 MCP is unavailable, misconfigured, or the user expl
 2. Resolve a technology keyword to candidate Context7 projects unless the user already supplied an exact Context7 path:
 
 ```bash
-/home/akra/.codex/skills/context7-web/scripts/resolve_context7_libraries.sh "rust hexagonal architecture" 8 summary
+python3 "$CODEX_HOME/skills/context7-web/scripts/context7_web.py" resolve "rust hexagonal architecture" --limit 8
 ```
 
 3. If the resolver output is weak or ambiguous, run direct searches for specific alternatives:
 
 ```bash
-/home/akra/.codex/skills/context7-web/scripts/search_context7_libraries.sh "ports adapters rust" 5 summary
+python3 "$CODEX_HOME/skills/context7-web/scripts/context7_web.py" search "ports adapters rust" --limit 5
 ```
 
 4. Pick the best `Project` using title, description, trust score, benchmark score, snippet count, verification, and relevance to the user's task.
 5. Fetch docs for the chosen `Project`:
 
 ```bash
-/home/akra/.codex/skills/context7-web/scripts/fetch_context7_docs.sh /websites/spring_io_spring-framework_reference_6_2 webflux 10000 json
+python3 "$CODEX_HOME/skills/context7-web/scripts/context7_web.py" fetch /websites/spring_io_spring-framework_reference_6_2 --topic webflux --tokens 10000
 ```
 
 6. Read the JSON response and answer from the returned snippets. Keep source identifiers such as `codeId` when citing a snippet.
@@ -48,7 +48,7 @@ Treat this as a local replacement for Context7 MCP `resolve-library-id`.
 ## Resolve Script
 
 ```text
-resolve_context7_libraries.sh <query> [limit] [format]
+context7_web.py resolve <query> [--limit N] [--format summary|json]
 ```
 
 - `query`: User-level need, such as `rust hexagonal architecture` or `webflux`.
@@ -60,7 +60,7 @@ This script runs multiple Context7 searches, deduplicates by `Project`, scores c
 ## Search Script
 
 ```text
-search_context7_libraries.sh <query> [limit] [format]
+context7_web.py search <query> [--limit N] [--format summary|json]
 ```
 
 - `query`: Keyword or library name, such as `webflux`, `ratatui`, or `spring security`.
@@ -72,7 +72,7 @@ Use `summary` for selection and `json` when raw metadata is needed.
 ## Docs Script
 
 ```text
-fetch_context7_docs.sh <library> [topic] [tokens] [type]
+context7_web.py fetch <library> [--topic topic] [--tokens N] [--type json]
 ```
 
 - `library`: Context7 project path from search results, such as `/ratatui/ratatui`, `/websites/spring_io_spring-framework_reference_6_2`, or `https://context7.com/ratatui/ratatui`.

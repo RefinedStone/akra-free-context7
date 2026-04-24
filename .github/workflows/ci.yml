@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu
+            os: ubuntu-latest
+            shell: bash
+          - name: macOS Apple Silicon
+            os: macos-14
+            shell: bash
+          - name: Windows
+            os: windows-latest
+            shell: pwsh
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Verify macOS runner architecture
+        if: matrix.name == 'macOS Apple Silicon'
+        shell: bash
+        run: |
+          test "$(uname -m)" = "arm64"
+
+      - name: Python syntax
+        shell: bash
+        run: |
+          python -m py_compile context7-web/scripts/context7_web.py
+
+      - name: Shell syntax
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          bash -n install.sh
+          bash -n context7-web/scripts/*.sh
+
+      - name: PowerShell syntax
+        shell: pwsh
+        run: |
+          $files = @(
+            "install.ps1",
+            "context7-web/scripts/resolve_context7_libraries.ps1",
+            "context7-web/scripts/search_context7_libraries.ps1",
+            "context7-web/scripts/fetch_context7_docs.ps1"
+          )
+          foreach ($file in $files) {
+            $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $file -Raw), [ref]$null)
+          }
+
+      - name: Local install test on Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          archive="$(mktemp --suffix=.tar.gz)"
+          install_home="$(mktemp -d)"
+          tar --exclude=.git -czf "$archive" -C .. "$(basename "$PWD")"
+          CODEX_HOME="$install_home" CONTEXT7_WEB_SKILL_ARCHIVE_URL="file://$archive" ./install.sh
+          test -f "$install_home/skills/context7-web/SKILL.md"
+          python "$install_home/skills/context7-web/scripts/context7_web.py" doctor
+
+      - name: Local install test on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP "akra-free-context7.zip"
+          $installHome = Join-Path $env:RUNNER_TEMP "codex-home"
+          Compress-Archive -Path * -DestinationPath $archive -Force
+          $env:CODEX_HOME = $installHome
+          $env:CONTEXT7_WEB_SKILL_ARCHIVE_URL = $archive
+          ./install.ps1
+          Test-Path (Join-Path $installHome "skills/context7-web/SKILL.md")
+          python (Join-Path $installHome "skills/context7-web/scripts/context7_web.py") doctor
+
+      - name: Context7 resolve smoke
+        shell: bash
+        run: |
+          python context7-web/scripts/context7_web.py resolve "rust rattauui" --limit 2
+
+      - name: Context7 fetch smoke
+        shell: bash
+        run: |
+          python context7-web/scripts/context7_web.py fetch /websites/rs_ratatui --topic layout --tokens 1000 >/tmp/context7-fetch.json
+          python - <<'PY'
+          import json
+          with open('/tmp/context7-fetch.json', encoding='utf-8') as file:
+              data = json.load(file)
+          assert data.get('snippets'), 'Context7 fetch returned no snippets'
+          PY

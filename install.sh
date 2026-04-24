@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo="${CONTEXT7_WEB_SKILL_REPO:-RefinedStone/context7-web-skill}"
+repo="${CONTEXT7_WEB_SKILL_REPO:-RefinedStone/akra-free-context7}"
 ref="${CONTEXT7_WEB_SKILL_REF:-main}"
 skill_name="context7-web"
 codex_home="${CODEX_HOME:-$HOME/.codex}"

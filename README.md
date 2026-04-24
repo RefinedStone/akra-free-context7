@@ -1,35 +1,129 @@
-# context7-web-skill
+# Akra Free Context7
 
-Codex skill for querying Context7 through the public web API when the Context7 MCP server is unavailable or misconfigured.
+[![CI](https://github.com/RefinedStone/akra-free-context7/actions/workflows/ci.yml/badge.svg)](https://github.com/RefinedStone/akra-free-context7/actions/workflows/ci.yml)
 
-## Install
+Context7 MCP가 API 키 문제로 막혔을 때 쓰는 Codex skill입니다. Context7의 공개 웹 API를 직접 호출해서 기술 문서를 검색하고, 적합한 Context7 project를 고른 뒤, 해당 문서 snippet을 가져옵니다.
+
+README는 설치와 사용 예시를 첫 화면에서 바로 확인할 수 있게 구성했습니다. GitHub README 관례상 제목, 짧은 설명, 상태 배지, 설치, 사용 예시, 제한 사항을 앞쪽에 두는 방식이 가장 읽기 쉽습니다.
+
+## 설치
+
+macOS, Linux, WSL, Git Bash:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/RefinedStone/context7-web-skill/main/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/RefinedStone/akra-free-context7/main/install.sh)"
 ```
 
-Restart Codex after installation so the skill list is reloaded.
+Windows PowerShell:
 
-## What It Does
-
-- Resolves technology keywords to Context7 projects.
-- Expands common aliases such as `springboot` to `spring boot`.
-- Handles selected typo aliases such as `rattauui` to `ratatui`.
-- Fetches docs snippets from the selected Context7 project.
-
-## Direct Usage
-
-```bash
-~/.codex/skills/context7-web/scripts/resolve_context7_libraries.sh "springboot kotlin" 8 summary
-~/.codex/skills/context7-web/scripts/fetch_context7_docs.sh /websites/spring_io_spring-boot_3_5 kotlin 5000 json
+```powershell
+irm https://raw.githubusercontent.com/RefinedStone/akra-free-context7/main/install.ps1 | iex
 ```
 
-## Notes
+설치 후 Codex를 재시작해야 skill 목록이 다시 로드됩니다.
 
-This skill uses undocumented Context7 web endpoints. If Context7 changes those endpoints, the scripts may need updates.
+## 요구 사항
 
-Do not hard-code cookies or API keys. If a request requires browser session state, pass it temporarily:
+- Python 3
+- 인터넷 연결
+- macOS/Linux 계열 설치: `bash`, `curl`, `tar`, `find`
+- Windows 설치: PowerShell 5+ 또는 PowerShell 7+
+
+## 무엇을 하나요
+
+- `webflux`, `springboot kotlin`, `rust ratatui` 같은 키워드로 Context7 project 후보를 찾습니다.
+- `springboot -> spring boot`, `rattauui -> ratatui`처럼 자주 나오는 alias와 일부 오타를 보정합니다.
+- `hexagonal architecture`, `ports and adapters`, `clean architecture`처럼 같은 개념의 다른 표현을 함께 검색합니다.
+- 선택된 Context7 project에서 topic 기반 문서 snippet을 가져옵니다.
+- 한국어 query와 출력이 깨지지 않도록 JSON 출력에서 UTF-8을 유지합니다.
+
+## 바로 사용하기
+
+공통 Python CLI:
 
 ```bash
-CONTEXT7_COOKIE='name=value; other=value' ~/.codex/skills/context7-web/scripts/resolve_context7_libraries.sh ratatui
+python ~/.codex/skills/context7-web/scripts/context7_web.py resolve "springboot kotlin" --limit 8
+python ~/.codex/skills/context7-web/scripts/context7_web.py fetch /websites/spring_io_spring-boot_3_5 --topic kotlin --tokens 5000
+```
+
+macOS/Linux wrapper:
+
+```bash
+~/.codex/skills/context7-web/scripts/resolve_context7_libraries.sh "rust rattauui" 5 summary
+~/.codex/skills/context7-web/scripts/fetch_context7_docs.sh /websites/rs_ratatui layout 5000 json
+```
+
+Windows PowerShell wrapper:
+
+```powershell
+~\.codex\skills\context7-web\scripts\resolve_context7_libraries.ps1 "rust rattauui" 5 summary
+~\.codex\skills\context7-web\scripts\fetch_context7_docs.ps1 /websites/rs_ratatui layout 5000 json
+```
+
+## 사용 흐름
+
+1. `resolve`로 기술 키워드를 Context7 project 후보로 바꿉니다.
+2. `Project`, `Trust`, `Benchmark`, `Snippets`, `Verified`, 설명을 보고 가장 적합한 후보를 고릅니다.
+3. `fetch`로 해당 project에서 topic 기반 문서를 가져옵니다.
+4. Context7 결과가 약하면 정확히 말합니다. 예를 들어 Rust 전용 hexagonal architecture 자료가 약하면 architecture 자료와 Rust 공식 자료를 조합해서 판단합니다.
+
+## 예시
+
+오타가 있는 Ratatui 검색:
+
+```bash
+python ~/.codex/skills/context7-web/scripts/context7_web.py resolve "rust rattauui" --limit 3
+```
+
+예상 상위 결과:
+
+```text
+1. Ratatui
+   Project: /websites/rs_ratatui
+   Source: https://docs.rs/ratatui/latest
+```
+
+Spring Boot Kotlin 검색:
+
+```bash
+python ~/.codex/skills/context7-web/scripts/context7_web.py resolve "springboot kotlin" --limit 3
+```
+
+예상 상위 결과:
+
+```text
+1. Spring Boot
+   Project: /websites/spring_io_spring-boot
+   Source: https://docs.spring.io/spring-boot
+```
+
+## 쿠키가 필요한 경우
+
+기본적으로 쿠키 없이 동작하도록 설계했습니다. 특정 요청에서 브라우저 세션이 필요하면 환경변수로만 넘깁니다. 쿠키나 API 키를 repo에 저장하지 마세요.
+
+macOS/Linux:
+
+```bash
+CONTEXT7_COOKIE='name=value; other=value' python ~/.codex/skills/context7-web/scripts/context7_web.py resolve ratatui
+```
+
+Windows PowerShell:
+
+```powershell
+$env:CONTEXT7_COOKIE = 'name=value; other=value'
+python ~\.codex\skills\context7-web\scripts\context7_web.py resolve ratatui
+```
+
+## 제한 사항
+
+- Context7의 비공식 웹 endpoint를 사용합니다. Context7이 endpoint나 응답 구조를 바꾸면 수정이 필요할 수 있습니다.
+- 검색 결과의 품질은 Context7 index에 의존합니다.
+- 자동 선택보다 후보를 보여주고 사람이 판단할 수 있게 하는 쪽을 우선합니다.
+
+## 개발/검증
+
+```bash
+python context7-web/scripts/context7_web.py doctor
+python context7-web/scripts/context7_web.py resolve "rust rattauui" --limit 2
+python context7-web/scripts/context7_web.py fetch /websites/rs_ratatui --topic layout --tokens 1000
 ```
